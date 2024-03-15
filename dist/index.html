@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timesheet Management System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="timesheet-logo.png">
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.4.0/firebase-storage.js"></script>
+</head>
+<body>
+    <div class="navbar">
+        <a id="profile" href="#">Proile</a>
+        <a id="signup" href="#" >Signup</a>
+        <a id="login" href="#" >Login</a>
+        <a id="logout" href="#">Logout</a>
+        <a id="back" href="#">Back</a>
+
+    </div>
+    <div class="home-section">
+       
+        <div class="home-content">
+            <h1>Welcome to our Employee Timesheet Management System</h1>
+            <h4>This system helps you manage your time effectively and efficiently. Please login to fill your timesheet</h4>
+            <img id="timesheet-image" src="timesheet-image.jpeg" width="65%" height="50%" alt="Timesheet Image">
+        </div>
+    </div>
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span  class="close" id="close-login-modal">&times;</span>
+            <form id="login-form">
+                <h2> Login</h2>
+                <label for="email">Email:</label>
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                <label for="email">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+    <div id="timesheet-container"></div>
+    <div id="signup-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-signup-modal">&times;</span>
+            <form id="signup-form">
+                <h2>Sign Up</h2>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="Email" required><br><br>
+                <label for="admin-toggle">Admin</label>
+                <label class="switch">
+                    <input type="checkbox" id="admin-toggle">
+                    <span class="slider round"></span>
+                </label>
+                <!-- <label for="phone">Phone:</label> -->
+                <!-- <input type="tel" id="phone" name="phone" placeholder="Phone" required><br><br> -->
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" name="password" placeholder="Password" required><br><br>
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card-container">
+    <div class="view-timesheet-card">
+        <div class="card-title">View Timesheet</div>
+        <div class="card-description">View your existing timesheets.</div>
+        <button id="view-timesheet-button" class="card-button">View</button>
+    </div>
+
+    <div class="add-timesheet-card">
+        <div class="card-title">Add Timesheet</div>
+        <div class="card-description">Add your timesheet.</div>
+        <button id="add-timesheet-button" class="card-button">Add</button>
+    </div>
+    <div class="add-leave-card">
+        <div class="card-title">Add Leave</div>
+        <div class="card-description">Add your planned leave.</div>
+        <button id="add-leave-button" class="card-button">Add</button>
+    </div>
+</div>
+<div id="notification-container"></div>
+    <div id="timesheet-form-container">
+        <div id="timesheet-form">
+            <form>
+                <h2>Timesheet </h2>
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required><br><br>
+                <label for="hours">Hours Worked:</label>
+                <input type="number" id="hours" name="hours" required><br><br>
+                <label for="project">Project:</label>
+                <select id="project" name="project" required>
+                    <option value="Client XYZ (000023305)">Client XYZ (000023305)</option>
+                    <option value="Client ABC (000033305)">Client ABC (000033305)</option>
+                    <option value="Bench">Bench</option>
+                </select><br><br>
+                <label for="task">Task:</label>
+                <input type="text" id="task" name="task" required><br><br>
+                <label for="description">Description:</label><br>
+                <textarea id="description" name="description" rows="4" cols="50" ></textarea><br><br>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="leave-form-container">
+        <div id="leave-form">
+            <form>
+                <h2>Apply Leave </h2>
+                <label for="start-date">Start Date:</label>
+                <input type="date" id="start-date" name="start-date" required><br><br>
+                <label for="end-date">End Date:</label>
+                <input type="date" id="end-date" name="end-date" required><br><br>
+                <!-- <label for="duration">Duration (in days):</label>
+                <input type="number" id="duration" name="duration" required><br><br> -->
+                <!-- <input type="text" id="duration" name="duration" readonly><br><br> -->
+                <label for="project">Project:</label>
+                <select id="project" name="project" required>
+                    <option value="Client XYZ (000023305)">Client XYZ (000023305)</option>
+                    <option value="Client ABC (000033305)">Client ABC (000033305)</option>
+                    <option value="Bench">Bench</option>
+                </select><br><br>
+                <label for="description">Description:</label><br>
+                <textarea id="description" name="description" rows="4" cols="50"></textarea><br><br>
+                <!-- <label for="email-file">Upload Email</label><br><br> -->
+                <input type="file" id="email-file" name="email-file"  required><br><br>
+                <label for="email-file">Upload Email (PDF, DOC, DOCX)</label><br><br>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+    
+    
+    <script src="bundle.js" ></script>
+</body>
+</html>
