@@ -1,0 +1,25 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Timesheet Management System",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "TMS",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "categories": ["Productivity"],
+  "iarc_rating_id": "12345", 
+  "lang": "en",
+  "prefer_related_applications": true,
+  "icons": [
+    {
+      "src": "timesheet-logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "id": "TMS",
+  "description": "Timesheet Management System made in PWA",
+  "scope_extensions": ["push"]
+}

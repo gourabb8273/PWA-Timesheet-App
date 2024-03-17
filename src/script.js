@@ -1,6 +1,3 @@
-// const initializeApp = require("firebase/app")
-// const getAnalytics = require("firebase/analytics")
-
 import { initializeApp } from "firebase/app";
 import {
     getAuth,
@@ -21,6 +18,19 @@ const firebaseConfig = {
     appId: "1:1001231652285:web:104b6d6466d9a992c76ed4",
     measurementId: "G-SNLELR3XVN"
 };
+
+// Registering Service Workers
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('../sw.js')
+            .then((registration) => {
+                console.log('Service worker registered:', registration);
+            })
+            .catch((error) => {
+                console.error('Service worker registration failed:', error);
+            });
+    });
+}
 
 const today = new Date().toISOString().split('T')[0];
 

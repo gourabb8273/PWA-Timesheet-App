@@ -215,30 +215,74 @@ button:hover {
 }
 
 .home-content {
-    text-align: center; 
-    max-width: 2000px; 
+    text-align: center;
+    max-width: 100%;
     padding: 5px;
 }
 
 .home-content h1 {
-    font-size: 2.5rem; 
-    margin-bottom: 10px; 
+    font-size: 2.5rem;
+    margin-bottom: 10px;
 }
 
-.home-content p {
-    font-size: 1.1rem; 
-    margin-bottom: 20px; 
+.home-content h4 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+.home-content img {
+    max-width: 100%;
+    height: auto;
 }
 
 .home-content .btn {
-    padding: 10px 20px; 
-    font-size: 1.2rem; 
+    padding: 10px 20px;
+    font-size: 1.2rem;
     background-color: #343a40;
-    color: #fff; 
-    border: none; 
+    color: #fff;
+    border: none;
     border-radius: 5px;
     cursor: pointer;
 }
+
+@media screen and (max-width: 768px) {
+    .home-content h1 {
+        font-size: 2rem;
+    }
+
+    .home-content h4 {
+        font-size: 1rem;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .home-content h1 {
+        font-size: 1.8rem;
+    }
+
+    .home-content h4 {
+        font-size: 0.9rem;
+    }
+
+    .home-content .btn {
+        font-size: 1rem;
+    }
+}
+
+@media screen and (max-width: 456px) {
+    .home-content h1 {
+        font-size: 0.9rem;
+    }
+
+    .home-content h4 {
+        font-size: 0.5rem;
+    }
+
+    .home-content .btn {
+        font-size: 0.9rem;
+    }
+}
+
 
 .action-container {
     display: flex;
@@ -265,11 +309,13 @@ button:hover {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .view-timesheet-card,
 .add-timesheet-card,
 .add-leave-card  {
+    width: calc(100% - 60px); 
     display: none;
     width: 300px;
     height: 200px;
@@ -279,6 +325,18 @@ button:hover {
     padding: 20px;
     margin: 30px;
     text-align: center;
+}
+@media screen and (max-width: 768px) {
+    .card-container {
+        margin: 3rem;
+    }
+
+    .view-timesheet-card,
+    .add-timesheet-card,
+    .add-leave-card {
+        width: calc(100%); 
+        margin: 10px;
+    }
 }
 
 .card-title {
@@ -391,7 +449,7 @@ button:hover {
 
   .notification {
     position: fixed;
-    top: 20px;
+    top: 20px; 
     right: 20px; 
     background-color: #f2f2f2;
     color: #333;
