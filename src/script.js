@@ -1,16 +1,16 @@
 // const initializeApp = require("firebase/app")
 // const getAnalytics = require("firebase/analytics")
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-app.js";
+import { initializeApp } from "firebase/app";
 import {
     getAuth,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-} from "https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { uploadBytes, getDownloadURL, ref, getStorage } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-storage.js";
+} from "firebase/auth";
+import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, orderBy } from "firebase/firestore";
+import { uploadBytes, getDownloadURL, ref, getStorage } from "firebase/storage";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAXt5UCawojL8OlicQt-16f9Tu_Yof8RFg",
