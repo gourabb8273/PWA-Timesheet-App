@@ -50,7 +50,6 @@ const resisterSW = async () => {
 // Request permission for notifications
 const requestNotificationPermission = async () => {
     const permission = await Notification.requestPermission();
-    debugger
     if (permission !== 'granted') {
         throw new Error("Notification Permission not granted");
     } else {
@@ -84,7 +83,6 @@ if ("serviceWorker" in navigator) {
             getToken(messaging, {vapidKey: "BNbO_k4Vjk8Vg1wRsEoLdLALvxad_nKrR0OouN86wZ2w-BgrN9g6reBqMmRYeYSEft7_V9DRvLd6Ux_gbyVnP5Y",serviceWorkerRegistration: registration })
                 .then(async (currentToken) => {
                     if (currentToken) {
-                        debugger
                         console.log('current token for client: ', currentToken);
                         await sendNotificationToClient(currentToken, 'Notification Title', 'Notification Body');
                         // await addDeviceToFCM({token: currentToken})
@@ -459,7 +457,6 @@ async function loadTimeSheetData() {
                 table.appendChild(headingsRow);
 
                 querySnapshot.forEach(async (docs) => {
-                    debugger
                     const timesheetData = docs.data();
                     const uid = timesheetData.userId;
                     const row = document.createElement("tr");

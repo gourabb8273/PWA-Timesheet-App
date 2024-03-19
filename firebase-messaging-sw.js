@@ -1,4 +1,3 @@
-debugger
 importScripts('https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js');
 // Initialize Firebase app in the service worker
@@ -11,7 +10,6 @@ const firebaseConfig = {
     appId: "1:1001231652285:web:104b6d6466d9a992c76ed4",
     measurementId: "G-SNLELR3XVN"
 };
-debugger
 firebase.initializeApp(firebaseConfig);
 
 // Retrieve Firebase messaging instance
