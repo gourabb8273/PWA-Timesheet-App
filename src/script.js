@@ -63,6 +63,8 @@ const viewTimeSheetCard = document.querySelector(".view-timesheet-card");
 const addTimeSheetCard = document.querySelector(".add-timesheet-card");
 const addLeaveCard = document.querySelector(".add-leave-card");
 const timesheetContainer = document.getElementById("timesheet-container");
+const cardTitle = viewTimeSheetCard.querySelector(".card-title");
+const cardDescription = viewTimeSheetCard.querySelector(".card-description");
 
 
 signupButton.addEventListener("click", function (event) {
@@ -120,7 +122,6 @@ function showNotification(message) {
 signUpForm.addEventListener("submit", function (event) {
     event.preventDefault();
     const email = document.getElementById("email").value;
-    debugger
     const name = document.getElementById("signup-name").value;
     const phone = document.getElementById("signup-phone").value;
     const adminToggle = document.getElementById('admin-toggle');
@@ -155,6 +156,8 @@ signUpForm.addEventListener("submit", function (event) {
                     addTimeSheetCard.style.display = 'block';
                     addLeaveCard.style.display = 'block';
                     cardContainer.style.display = 'flex';
+                    cardTitle.innerText = isAdmin? "View / manage timesheets" : "View Timesheet";
+                    cardDescription.innerText = isAdmin?  "View and manage your existing timesheets.": "View your existing timesheets";
                 })
                 .catch((error) => {
                     console.error("Error adding user entry entry: ", error);
@@ -203,6 +206,8 @@ loginForm.addEventListener("submit", function (event) {
                 addLeaveCard.style.display = 'block';
                 loginForm.style.display = 'block';
                 cardContainer.style.display = 'flex';
+                cardTitle.innerText = isAdmin? "View / manage timesheets" : "View Timesheet";
+                cardDescription.innerText = isAdmin?  "View and manage your existing timesheets.": "View your existing timesheets";
             }).catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
@@ -318,7 +323,6 @@ timesheetForm.addEventListener("submit", function (event) {
     const project = document.getElementById("project").value;
     const description = document.getElementById("description").value;
     const task = document.getElementById("task").value;
-
     const collRef = collection(db, "timesheet")
     addDoc(collRef, {
         userId,
@@ -344,7 +348,7 @@ timesheetForm.addEventListener("submit", function (event) {
         });
 });
 
-viewTimeSheetCard.addEventListener("click", function (event) {
+viewTimeSheetCard.addEventListener("click", async function (event) {
     timesheetContainer.innerHTML = "";
     timesheetContainer.style.display = 'block';
     const userId = getUserFromCookie();
@@ -352,12 +356,11 @@ viewTimeSheetCard.addEventListener("click", function (event) {
         collection(db, "users"),
         where("userId", "==", userId)
     );
-    getDocs(userRoleQuery).then((userSnapshot) => {
+    getDocs(userRoleQuery).then(async (userSnapshot) => {
         if (userSnapshot.empty) {
             alert("User not found");
             return;
         }
-
         const userDoc = userSnapshot.docs[0];
         const isAdmin = userDoc.data().isAdmin;
         const q = query(
@@ -366,9 +369,8 @@ viewTimeSheetCard.addEventListener("click", function (event) {
             orderBy("date", "desc")
         );
         const qAdmin = collection(db, "timesheet");
-
         getDocs(isAdmin ? qAdmin : q)
-            .then((querySnapshot) => {
+            .then(async (querySnapshot) => {
                 cardContainer.style.display = "none";
                 backButton.style.display = 'block';
                 const table = document.createElement("table");
@@ -377,6 +379,8 @@ viewTimeSheetCard.addEventListener("click", function (event) {
                 const headingsRow = document.createElement("tr");
                 headingsRow.innerHTML = `
                     <th>Project</th>
+                    <th>Name</th>
+                    <th>Email</th>
                     <th>Date</th>
                     <th>Duration</th>
                     <th>Task</th>
@@ -386,11 +390,23 @@ viewTimeSheetCard.addEventListener("click", function (event) {
                 `;
                 table.appendChild(headingsRow);
 
-                querySnapshot.forEach((docs) => {
+                querySnapshot.forEach(async (docs) => {
                     const timesheetData = docs.data();
+                    const uid = timesheetData.userId;
                     const row = document.createElement("tr");
+                    const userQuery = query(
+                          collection(db, "users"),
+                            where("userId", "==", uid),
+                            where("userId", "!=", userId)
+                        )
+                    const userDetails = await getDocs(userQuery);
+                    const users = userDetails.docs[0].data();
+                    const userEmail = users.email;
+                    const userName = users.name;
                     row.dataset.docId = docs.id;
                     const cells = [
+                        document.createElement("td"),
+                        document.createElement("td"),
                         document.createElement("td"),
                         document.createElement("td"),
                         document.createElement("td"),
@@ -401,11 +417,13 @@ viewTimeSheetCard.addEventListener("click", function (event) {
                     ];
 
                     cells[0].textContent = timesheetData.project;
-                    cells[1].textContent = timesheetData.date || `${new Date(timesheetData.startDate.seconds * 1000).toISOString().split('T')[0]} to ${new Date(timesheetData.endDate.seconds * 1000).toISOString().split('T')[0]}`;
-                    cells[2].textContent = timesheetData.hours ? `${timesheetData.hours} hours` : `${timesheetData.duration} days`;
-                    cells[3].textContent = timesheetData.task;
-                    cells[4].textContent = timesheetData.entryType;
-                    cells[5].textContent = timesheetData.approvalStatus;
+                    cells[1].textContent = userName || '';
+                    cells[2].textContent = userEmail || '' ;
+                    cells[3].textContent = timesheetData.date || `${new Date(timesheetData.startDate.seconds * 1000).toISOString().split('T')[0]} to ${new Date(timesheetData.endDate.seconds * 1000).toISOString().split('T')[0]}`;
+                    cells[4].textContent = timesheetData.hours ? `${timesheetData.hours} hours` : `${timesheetData.duration} days`;
+                    cells[5].textContent = timesheetData.task;
+                    cells[6].textContent = timesheetData.entryType;
+                    cells[7].textContent = timesheetData.approvalStatus;
 
                     for (let i = 5; i < cells.length - 1; i++) {
                         const cell = cells[i];
@@ -455,10 +473,10 @@ viewTimeSheetCard.addEventListener("click", function (event) {
                         };
                         actionContainer.appendChild(rejectButton);
 
-                        cells[6].appendChild(actionContainer);
+                        cells[8].appendChild(actionContainer);
                     }
                     else {
-                        cells[6].textContent = "N/A";
+                        cells[8].textContent = "N/A";
                     }
                     cells.forEach(cell => row.appendChild(cell));
                     table.appendChild(row);
