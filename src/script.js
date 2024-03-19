@@ -102,6 +102,7 @@ backButton.addEventListener('click', function (event) {
     cardContainer.style.display = "flex";
     timesheetForm.style.display = 'none';
     leaveForm.style.display = 'none';
+    backButton.style.display = 'none';
 })
 
 function showNotification(message) {
@@ -120,10 +121,11 @@ signUpForm.addEventListener("submit", function (event) {
     event.preventDefault();
     const email = document.getElementById("email").value;
     debugger
-    // const phone = document.getElementById("phone").value;
+    const name = document.getElementById("signup-name").value;
+    const phone = document.getElementById("signup-phone").value;
     const adminToggle = document.getElementById('admin-toggle');
     const isAdmin = adminToggle.checked;
-    const password = document.getElementById("password").value;
+    const password = document.getElementById("signup-password").value;
     createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
             const user = userCredential.user;
@@ -131,6 +133,8 @@ signUpForm.addEventListener("submit", function (event) {
             addDoc(collRef, {
                 userId: user.uid,
                 email,
+                phone,
+                name,
                 isAdmin,
                 date: new Date()
             })
@@ -142,7 +146,7 @@ signUpForm.addEventListener("submit", function (event) {
                     timesheetForm.style.display = "none";
                     logoutButton.style.display = "block";
                     document.getElementById("profile").style.display = 'block'
-                    document.getElementById("profile").textContent = isAdmin ? `${email} (Admin)` : `${email}`;
+                    document.getElementById("profile").textContent = isAdmin ? `${name || email} (Admin)` : `${name || email}`;
                     signupModal.style.display = "none";
                     signupButton.style.display = "none";
                     loginButton.style.display = "none";
@@ -184,11 +188,12 @@ loginForm.addEventListener("submit", function (event) {
                 }
                 const userDoc = userSnapshot.docs[0];
                 const isAdmin = userDoc.data().isAdmin;
+                const name = userDoc.data().name;
                 console.log("User logged in:", user);
                 showNotification("User has Logged in successfully")
                 logoutButton.style.display = "block";
                 document.getElementById("profile").style.display = 'block'
-                document.getElementById("profile").textContent = isAdmin ? `${email} (Admin)` : `${email}`;
+                document.getElementById("profile").textContent = isAdmin ? `${name || email} (Admin)` : `${name || email}`;
                 loginModal.style.display = "none";
                 loginButton.style.display = "none";
                 homeSection.style.display = 'none';
@@ -261,7 +266,6 @@ leaveForm.addEventListener("submit", async function (event) {
     const description = document.getElementById("description").value;
     const fileInput = document.getElementById("email-file");
     const duration = calculateDuration(startDate, endDate);
-    debugger;
     if (duration < 0) {
         alert("Please choose the date correctly! End date should be more thant start date")
         return;
@@ -468,8 +472,6 @@ viewTimeSheetCard.addEventListener("click", function (event) {
     });
 });
 
-
-
 function setCookie(name, value, days) {
     const expires = new Date();
     expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
@@ -477,7 +479,7 @@ function setCookie(name, value, days) {
 }
 
 function deleteCookie(name) {
-    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+    document.cookie = `${name}=;max-age=0;path=/;`;
 }
 
 function getUserFromCookie() {
