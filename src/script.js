@@ -8,6 +8,12 @@ import {
 } from "firebase/auth";
 import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, orderBy } from "firebase/firestore";
 import { uploadBytes, getDownloadURL, ref, getStorage } from "firebase/storage";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { getFunctions, httpsCallable } from "firebase/functions";
+// import cors from 'cors';
+// cors({origin:true})
+// import * as functions from 'firebase-functions';  
+// import * as cors from 'cors';
 
 const firebaseConfig = {
     apiKey: "AIzaSyAXt5UCawojL8OlicQt-16f9Tu_Yof8RFg",
@@ -18,27 +24,86 @@ const firebaseConfig = {
     appId: "1:1001231652285:web:104b6d6466d9a992c76ed4",
     measurementId: "G-SNLELR3XVN"
 };
-
-// Registering Service Workers
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('../sw.js')
-            .then((registration) => {
-                console.log('Service worker registered:', registration);
-            })
-            .catch((error) => {
-                console.error('Service worker registration failed:', error);
-            });
-    });
-}
-
-const today = new Date().toISOString().split('T')[0];
-
-document.getElementById("date").setAttribute("max", today);
-
 const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app)
+const today = new Date().toISOString().split('T')[0];
+document.getElementById("date").setAttribute("max", today);
 const auth = getAuth(app)
 const db = getFirestore(app);
+
+//Check permission 
+const checkPermission = () => {
+    if (!('serviceWorker' in navigator)) {
+        throw new Error('No support for service worker!')
+    }
+    if (!('Notification' in window)) {
+        throw new Error('No support for Notification API!')
+    }
+
+}
+// Registering Service Workers
+const resisterSW = async () => {
+    const registration = await navigator.serviceWorker.register('../sw.js');
+    return registration;
+}
+
+// Request permission for notifications
+const requestNotificationPermission = async () => {
+    const permission = await Notification.requestPermission();
+    debugger
+    if (permission !== 'granted') {
+        throw new Error("Notification Permission not granted");
+    } else {
+        new Notification("hellowworld");
+    }
+
+}
+checkPermission();
+resisterSW();
+requestNotificationPermission();
+const addDeviceToFCM = httpsCallable(getFunctions(), 'addDeviceToFCM')
+
+
+const getFunction = getFunctions(app);
+const sendNotification = httpsCallable(getFunction, 'sendNotification');
+const sendNotificationToClient = async (token, title, body) => {
+    try {
+      const result = await sendNotification({ token, title, body });
+      console.log('Notification sent successfully:', result);
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
+  };
+
+// Registering Firebase Cloud Messaging Client 
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+        .register("../firebase-messaging-sw.js")
+        .then(function (registration) {
+            console.log("Registration successful, scope is:", registration.scope);
+            getToken(messaging, {vapidKey: "BNbO_k4Vjk8Vg1wRsEoLdLALvxad_nKrR0OouN86wZ2w-BgrN9g6reBqMmRYeYSEft7_V9DRvLd6Ux_gbyVnP5Y",serviceWorkerRegistration: registration })
+                .then(async (currentToken) => {
+                    if (currentToken) {
+                        debugger
+                        console.log('current token for client: ', currentToken);
+                        await sendNotificationToClient(currentToken, 'Notification Title', 'Notification Body');
+                        // await addDeviceToFCM({token: currentToken})
+                    } else {
+                        console.log('No registration token available. Request permission to generate one.');
+                    }
+                }).catch((err) => {
+                    console.log('An error occurred while retrieving token. ', err);
+                });
+        })
+        .catch(function (err) {
+            console.log("Service worker registration failed, error:", err);
+        });
+}
+
+onMessage(messaging, message=> {
+  console.log(message.notification)
+})
+
 
 const loginForm = document.querySelector("#login-form");
 const signUpForm = document.querySelector("#signup-form");
@@ -51,7 +116,6 @@ const signupButton = document.getElementById('signup')
 const signupModal = document.getElementById("signup-modal");
 const loginButton = document.getElementById('login')
 const profileButton = document.getElementById('profile')
-
 const loginModal = document.getElementById("login-modal");
 const closeLoginModal = document.getElementById("close-login-modal");
 const closeSignUpModal = document.getElementById("close-signup-modal");
@@ -156,8 +220,8 @@ signUpForm.addEventListener("submit", function (event) {
                     addTimeSheetCard.style.display = 'block';
                     addLeaveCard.style.display = 'block';
                     cardContainer.style.display = 'flex';
-                    cardTitle.innerText = isAdmin? "View / manage timesheets" : "View Timesheet";
-                    cardDescription.innerText = isAdmin?  "View and manage your existing timesheets.": "View your existing timesheets";
+                    cardTitle.innerText = isAdmin ? "View / Manage Timesheets" : "View Timesheet";
+                    cardDescription.innerText = isAdmin ? "View and manage your existing timesheets." : "View your existing timesheets";
                 })
                 .catch((error) => {
                     console.error("Error adding user entry entry: ", error);
@@ -206,11 +270,12 @@ loginForm.addEventListener("submit", function (event) {
                 addLeaveCard.style.display = 'block';
                 loginForm.style.display = 'block';
                 cardContainer.style.display = 'flex';
-                cardTitle.innerText = isAdmin? "View / manage timesheets" : "View Timesheet";
-                cardDescription.innerText = isAdmin?  "View and manage your existing timesheets.": "View your existing timesheets";
+                cardTitle.innerText = isAdmin ? "View / manage timesheets" : "View Timesheet";
+                cardDescription.innerText = isAdmin ? "View and manage your existing timesheets." : "View your existing timesheets";
             }).catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
+                showNotification("Please provide the valid credential")
                 console.error("Fetching user role error:", errorMessage);
             })
 
@@ -218,6 +283,7 @@ loginForm.addEventListener("submit", function (event) {
         .catch((error) => {
             const errorCode = error.code;
             const errorMessage = error.message;
+            showNotification("Please provide the valid credential")
             console.error("Login error:", errorMessage);
         });
 });
@@ -267,8 +333,8 @@ leaveForm.addEventListener("submit", async function (event) {
     if (!userId) alert("Login token has expired! Please login again")
     const startDate = new Date(document.getElementById("start-date").value);
     const endDate = new Date(document.getElementById("end-date").value);
-    const project = document.getElementById("project").value;
-    const description = document.getElementById("description").value;
+    const project = document.getElementById("leave-project").value;
+    const description = document.getElementById("leave-description").value;
     const fileInput = document.getElementById("email-file");
     const duration = calculateDuration(startDate, endDate);
     if (duration < 0) {
@@ -300,10 +366,9 @@ leaveForm.addEventListener("submit", async function (event) {
     })
         .then((result) => {
             console.log("Leave entry added successfully", result);
-            showNotification("Leave has been added successfully")
+            showNotification("Leave has been added successfully, Please go back and view timesheet/leave")
             document.getElementById("start-date").value = "";
             document.getElementById("end-date").value = "";
-            document.getElementById("duration").value = "";
             document.getElementById("email-file").value = "";
             document.getElementById("project").value = "";
             document.getElementById("description").value = "";
@@ -337,7 +402,7 @@ timesheetForm.addEventListener("submit", function (event) {
     })
         .then((result) => {
             console.log("Timesheet entry added successfully", result);
-            showNotification("Timesheet has been added successfully")
+            showNotification("Timesheet has been added successfully, Please go back and view timesheet/leave")
             document.getElementById("date").value = "";
             document.getElementById("hours").value = "";
             document.getElementById("project").value = "";
@@ -349,8 +414,14 @@ timesheetForm.addEventListener("submit", function (event) {
 });
 
 viewTimeSheetCard.addEventListener("click", async function (event) {
-    timesheetContainer.innerHTML = "";
+    timesheetContainer.innerHTML = ""; 
     timesheetContainer.style.display = 'block';
+    cardContainer.style.display = "none";
+    backButton.style.display = 'block';
+    loadTimeSheetData(); 
+});
+
+async function loadTimeSheetData() {
     const userId = getUserFromCookie();
     const userRoleQuery = query(
         collection(db, "users"),
@@ -366,13 +437,10 @@ viewTimeSheetCard.addEventListener("click", async function (event) {
         const q = query(
             collection(db, "timesheet"),
             where("userId", "==", userId),
-            orderBy("date", "desc")
         );
         const qAdmin = collection(db, "timesheet");
         getDocs(isAdmin ? qAdmin : q)
             .then(async (querySnapshot) => {
-                cardContainer.style.display = "none";
-                backButton.style.display = 'block';
                 const table = document.createElement("table");
                 table.classList.add("timesheet-table");
 
@@ -391,18 +459,18 @@ viewTimeSheetCard.addEventListener("click", async function (event) {
                 table.appendChild(headingsRow);
 
                 querySnapshot.forEach(async (docs) => {
+                    debugger
                     const timesheetData = docs.data();
                     const uid = timesheetData.userId;
                     const row = document.createElement("tr");
                     const userQuery = query(
-                          collection(db, "users"),
-                            where("userId", "==", uid),
-                            where("userId", "!=", userId)
-                        )
+                        collection(db, "users"),
+                        where("userId", "==", uid),
+                    )
                     const userDetails = await getDocs(userQuery);
-                    const users = userDetails.docs[0].data();
-                    const userEmail = users.email;
-                    const userName = users.name;
+                    const users = userDetails.docs[0] && userDetails.docs[0].data();
+                    const userEmail = users && users.email;
+                    const userName = users && users.name;
                     row.dataset.docId = docs.id;
                     const cells = [
                         document.createElement("td"),
@@ -418,7 +486,7 @@ viewTimeSheetCard.addEventListener("click", async function (event) {
 
                     cells[0].textContent = timesheetData.project;
                     cells[1].textContent = userName || '';
-                    cells[2].textContent = userEmail || '' ;
+                    cells[2].textContent = userEmail || '';
                     cells[3].textContent = timesheetData.date || `${new Date(timesheetData.startDate.seconds * 1000).toISOString().split('T')[0]} to ${new Date(timesheetData.endDate.seconds * 1000).toISOString().split('T')[0]}`;
                     cells[4].textContent = timesheetData.hours ? `${timesheetData.hours} hours` : `${timesheetData.duration} days`;
                     cells[5].textContent = timesheetData.task;
@@ -436,7 +504,7 @@ viewTimeSheetCard.addEventListener("click", async function (event) {
                         }
                     }
 
-                    if (isAdmin && timesheetData.approvalStatus === "Pending") {
+                    if (isAdmin && timesheetData.approvalStatus === "Pending" && userId != uid) {
                         const actionContainer = document.createElement("div");
                         actionContainer.classList.add("action-container");
 
@@ -451,6 +519,8 @@ viewTimeSheetCard.addEventListener("click", async function (event) {
                                 .then(() => {
                                     showNotification("Timesheet has been approved")
                                     console.log("Timesheet entry approved:", docId);
+                                    timesheetContainer.innerHTML = "";
+                                    loadTimeSheetData()
                                 }).catch((error) => {
                                     console.error("Error approving timesheet entry:", error);
                                 });
@@ -467,6 +537,8 @@ viewTimeSheetCard.addEventListener("click", async function (event) {
                                 .then(() => {
                                     console.log("Timesheet entry Rejected:", docId);
                                     showNotification("Timesheet has been rejected")
+                                    timesheetContainer.innerHTML = ""; 
+                                    loadTimeSheetData()
                                 }).catch((error) => {
                                     console.error("Error Rejecting timesheet entry:", error);
                                 });
@@ -476,7 +548,7 @@ viewTimeSheetCard.addEventListener("click", async function (event) {
                         cells[8].appendChild(actionContainer);
                     }
                     else {
-                        cells[8].textContent = "N/A";
+                        cells[8].textContent = "-";
                     }
                     cells.forEach(cell => row.appendChild(cell));
                     table.appendChild(row);
@@ -488,7 +560,8 @@ viewTimeSheetCard.addEventListener("click", async function (event) {
                 console.error("Error fetching timesheet data: ", error);
             });
     });
-});
+}
+
 
 function setCookie(name, value, days) {
     const expires = new Date();

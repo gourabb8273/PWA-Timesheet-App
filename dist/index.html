@@ -64,8 +64,8 @@
 
     <div class="card-container">
     <div class="view-timesheet-card">
-        <div class="card-title">View Timesheet</div>
-        <div class="card-description">View your existing timesheets.</div>
+        <div class="card-title">View Timesheet/Leave</div>
+        <div class="card-description">View your existing Timesheets / Leave.</div>
         <button id="view-timesheet-button" class="card-button">View</button>
     </div>
 
@@ -112,18 +112,14 @@
                 <input type="date" id="start-date" name="start-date" required><br><br>
                 <label for="end-date">End Date:</label>
                 <input type="date" id="end-date" name="end-date" required><br><br>
-                <!-- <label for="duration">Duration (in days):</label>
-                <input type="number" id="duration" name="duration" required><br><br> -->
-                <!-- <input type="text" id="duration" name="duration" readonly><br><br> -->
                 <label for="project">Project:</label>
-                <select id="project" name="project" required>
+                <select id="leave-project" name="project" required>
                     <option value="Client XYZ (000023305)">Client XYZ (000023305)</option>
                     <option value="Client ABC (000033305)">Client ABC (000033305)</option>
                     <option value="Bench">Bench</option>
                 </select><br><br>
                 <label for="description">Description:</label><br>
-                <textarea id="description" name="description" rows="4" cols="50"></textarea><br><br>
-                <!-- <label for="email-file">Upload Email</label><br><br> -->
+                <textarea id="leave-description" name="description" rows="4" cols="50"></textarea><br><br>
                 <input type="file" id="email-file" name="email-file"  required><br><br>
                 <label for="email-file">Upload Email (PDF, DOC, DOCX)</label><br><br>
                 <button type="submit">Submit</button>
