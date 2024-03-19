@@ -189,48 +189,63 @@ signUpForm.addEventListener("submit", function (event) {
     const adminToggle = document.getElementById('admin-toggle');
     const isAdmin = adminToggle.checked;
     const password = document.getElementById("signup-password").value;
-    createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            const user = userCredential.user;
-            const collRef = collection(db, "users")
-            addDoc(collRef, {
-                userId: user.uid,
-                email,
-                phone,
-                name,
-                isAdmin,
-                date: new Date()
-            })
-                .then((result) => {
-                    showNotification("User has registered successfully")
-                    console.log("user entry added successfully", result);
-                    console.log("User logged in:", user);
-                    loginForm.style.display = "none";
-                    timesheetForm.style.display = "none";
-                    logoutButton.style.display = "block";
-                    document.getElementById("profile").style.display = 'block'
-                    document.getElementById("profile").textContent = isAdmin ? `${name || email} (Admin)` : `${name || email}`;
-                    signupModal.style.display = "none";
-                    signupButton.style.display = "none";
-                    loginButton.style.display = "none";
-                    homeSection.style.display = 'none';
-                    viewTimeSheetCard.style.display = 'block';
-                    addTimeSheetCard.style.display = 'block';
-                    addLeaveCard.style.display = 'block';
-                    cardContainer.style.display = 'flex';
-                    cardTitle.innerText = isAdmin ? "View / Manage Timesheets" : "View Timesheet";
-                    cardDescription.innerText = isAdmin ? "View and manage your existing timesheets." : "View your existing timesheets";
+
+    const userQuery = query(
+        collection(db, "users"),
+        where("email", "==", email)
+    );
+    getDocs(userQuery).then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+            showNotification("Email already exists. Please use a different email.");
+            return;
+        }
+
+        createUserWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                const collRef = collection(db, "users")
+                addDoc(collRef, {
+                    userId: user.uid,
+                    email,
+                    phone,
+                    name,
+                    isAdmin,
+                    date: new Date()
                 })
-                .catch((error) => {
-                    console.error("Error adding user entry entry: ", error);
-                });
-        })
-        .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            console.error("Login error:", errorMessage);
-        });
+                    .then((result) => {
+                        showNotification("User has registered successfully")
+                        console.log("user entry added successfully", result);
+                        console.log("User logged in:", user);
+                        loginForm.style.display = "none";
+                        timesheetForm.style.display = "none";
+                        logoutButton.style.display = "block";
+                        document.getElementById("profile").style.display = 'block'
+                        document.getElementById("profile").textContent = isAdmin ? `${name || email} (Admin)` : `${name || email}`;
+                        signupModal.style.display = "none";
+                        signupButton.style.display = "none";
+                        loginButton.style.display = "none";
+                        homeSection.style.display = 'none';
+                        viewTimeSheetCard.style.display = 'block';
+                        addTimeSheetCard.style.display = 'block';
+                        addLeaveCard.style.display = 'block';
+                        cardContainer.style.display = 'flex';
+                        cardTitle.innerText = isAdmin ? "View / Manage Timesheets" : "View Timesheet";
+                        cardDescription.innerText = isAdmin ? "View and manage your existing timesheets." : "View your existing timesheets";
+                    })
+                    .catch((error) => {
+                        console.error("Error adding user entry entry: ", error);
+                    });
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.error("Login error:", errorMessage);
+            });
+    }).catch((error) => {
+        console.error("Error checking existing email: ", error);
+    });
 });
+
 
 // Login Event
 loginForm.addEventListener("submit", function (event) {
