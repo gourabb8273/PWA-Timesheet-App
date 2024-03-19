@@ -305,7 +305,11 @@ button:hover {
 .approve-button {
     background: rgb(17, 122, 56);
  }
-
+ @media screen and (max-width: 500px) {
+    .approve-button, .rejected-button{
+        border:10px solid red;
+    }
+}
 .card-container {
     margin: 10rem;
     display: flex;
@@ -416,6 +420,7 @@ button:hover {
 .rejected {
     color: #ae0715; 
 }
+
 
 .switch {
     margin-bottom: 20px !important;

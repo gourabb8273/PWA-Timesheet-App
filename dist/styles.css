@@ -30,6 +30,12 @@ body {
     padding: 6px;
 }
 
+@media screen and (max-width: 600px) {
+    #profile {
+        font-size: 0.6rem;
+    }
+}
+
 #login-form {
     max-width: 400px;
     margin: 40px auto;
@@ -305,7 +311,11 @@ button:hover {
 .approve-button {
     background: rgb(17, 122, 56);
  }
-
+ @media screen and (max-width: 500px) {
+    .approve-button, .reject-button{
+        font-size: 0.6rem;
+    }
+}
 .card-container {
     margin: 10rem;
     display: flex;
@@ -415,6 +425,12 @@ button:hover {
 
 .rejected {
     color: #ae0715; 
+}
+
+@media screen and (max-width: 500px) {
+    .approved-button, .rejected-button{
+        border:1px solid red;
+    }
 }
 
 .switch {
