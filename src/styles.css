@@ -29,7 +29,11 @@ body {
     color: black;
     padding: 6px;
 }
-
+@media screen and (max-width: 600px) {
+    #profile, #logout, #login, #signup, #back {
+        font-size: 0.8rem;
+    }
+}
 #login-form {
     max-width: 400px;
     margin: 40px auto;

@@ -31,8 +31,8 @@ body {
 }
 
 @media screen and (max-width: 600px) {
-    #profile {
-        font-size: 0.6rem;
+    #profile, #logout, #login, #signup, #back {
+        font-size: 0.8rem;
     }
 }
 
