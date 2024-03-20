@@ -12,8 +12,9 @@ URL - https://timesheet-app-84034.web.app/
   - Two types of time-sheet entries: work hours and leave days.
   - Time-sheet entries require details such as type, date, start time, end time, and description.
 - **View Time-Sheet**: Employees can view their time-sheet entries along with their status (pending, approved, or rejected).
-- **Sign Up**: New users can register using username/password, Gmail, or phone number.
-- **Adming Signup**: Currently we are showing an option so that a user can sign up as admin as well but in real case that option won't be available for all users.
+- **Sign Up**: New users can register using name, Gmail, Password, Phone number. 
+- **Note-** Also, an option available for registering as admin user role. This is for testing purpose in actual world we won’t allow any user to sign up with admin role.
+
 
 ### For Managers
 - **Login**: Managers can log in to their accounts using their credentials.
@@ -52,7 +53,7 @@ URL - https://timesheet-app-84034.web.app/
 ![Login Page](application-snapshots/image-1.png)
 
 3. Signup Page
-![Signup Page](application-snapshots/image-2.png)
+![Login Page](application-snapshots/image-2.png)
 
 4. Admin Side
    - **Dashboard Page**: Admin can also add timesheet and leave but can't approve or reject those requests.
