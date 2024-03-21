@@ -75,32 +75,65 @@ const sendNotificationToClient = async (token, title, body) => {
   };
 
 // Registering Firebase Cloud Messaging Client 
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker
-        .register("../firebase-messaging-sw.js")
-        .then(function (registration) {
-            console.log("Registration successful, scope is:", registration.scope);
-            getToken(messaging, {vapidKey: "BNbO_k4Vjk8Vg1wRsEoLdLALvxad_nKrR0OouN86wZ2w-BgrN9g6reBqMmRYeYSEft7_V9DRvLd6Ux_gbyVnP5Y",serviceWorkerRegistration: registration })
-                .then(async (currentToken) => {
-                    if (currentToken) {
-                        console.log('current token for client: ', currentToken);
-                        await sendNotificationToClient(currentToken, 'Notification Title', 'Notification Body');
-                        // await addDeviceToFCM({token: currentToken})
-                    } else {
-                        console.log('No registration token available. Request permission to generate one.');
-                    }
-                }).catch((err) => {
-                    console.log('An error occurred while retrieving token. ', err);
-                });
-        })
-        .catch(function (err) {
-            console.log("Service worker registration failed, error:", err);
-        });
+async function registerDeviceToFCM(){
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+            .register("../firebase-messaging-sw.js")
+            .then(function (registration) {
+                console.log("Registration successful, scope is:", registration.scope);
+                getToken(messaging, {vapidKey: "BNbO_k4Vjk8Vg1wRsEoLdLALvxad_nKrR0OouN86wZ2w-BgrN9g6reBqMmRYeYSEft7_V9DRvLd6Ux_gbyVnP5Y",serviceWorkerRegistration: registration })
+                    .then(async (currentToken) => {
+                        if (currentToken) {
+                            console.log('current token for client: ', currentToken);
+                            await addTokenToFirestore(currentToken);
+                            await sendNotificationToClient(currentToken, 'Notification Title', 'Notification Body');
+                            // await addDeviceToFCM({token: currentToken})
+                        } else {
+                            console.log('No registration token available. Request permission to generate one.');
+                        }
+                    }).catch((err) => {
+                        console.log('An error occurred while retrieving token. ', err);
+                    });
+            })
+            .catch(function (err) {
+                console.log("Service worker registration failed, error:", err);
+            });
+    }
 }
+
 
 onMessage(messaging, message=> {
   console.log(message.notification)
 })
+
+// Storing Device token to Database
+async function addTokenToFirestore(token) {
+    try {
+        const tokensRef = collection(db, "tokens");
+        const userId = getUserFromCookie();
+        const querySnapshot = await getDocs(query(tokensRef, where("deviceToken", "==", token)));
+        // Check if the token already exists in Firestore
+        if (!querySnapshot.empty) {
+            const docSnapshot = querySnapshot.docs[0];
+            debugger
+            await updateDoc(doc(db,"tokens", docSnapshot.id), {
+                deviceToken: token,
+                userId,
+                date: new Date() 
+            });
+            console.log('Token updated in Firestore successfully.');
+        } else {
+            await addDoc(tokensRef, {
+                deviceToken: token,
+                userId,
+                date: new Date()
+            });
+            console.log('Token added to Firestore successfully.');
+        }
+    } catch (error) {
+        console.error('Error adding/updating token in Firestore: ', error);
+    }
+}
 
 
 const loginForm = document.querySelector("#login-form");
@@ -212,7 +245,7 @@ signUpForm.addEventListener("submit", function (event) {
                     isAdmin,
                     date: new Date()
                 })
-                    .then((result) => {
+                    .then(async (result) => {
                         showNotification("User has registered successfully")
                         console.log("user entry added successfully", result);
                         console.log("User logged in:", user);
@@ -231,6 +264,7 @@ signUpForm.addEventListener("submit", function (event) {
                         cardContainer.style.display = 'flex';
                         cardTitle.innerText = isAdmin ? "View / Manage Timesheets" : "View Timesheet";
                         cardDescription.innerText = isAdmin ? "View and manage your existing timesheets." : "View your existing timesheets";
+                        await registerDeviceToFCM();
                     })
                     .catch((error) => {
                         console.error("Error adding user entry entry: ", error);
@@ -261,7 +295,7 @@ loginForm.addEventListener("submit", function (event) {
                 collection(db, "users"),
                 where("userId", "==", user.uid)
             );
-            getDocs(userRoleQuery).then((userSnapshot) => {
+            getDocs(userRoleQuery).then(async (userSnapshot) => {
                 if (userSnapshot.empty) {
                     alert("User not found");
                     return;
@@ -285,6 +319,7 @@ loginForm.addEventListener("submit", function (event) {
                 cardContainer.style.display = 'flex';
                 cardTitle.innerText = isAdmin ? "View / manage timesheets" : "View Timesheet";
                 cardDescription.innerText = isAdmin ? "View and manage your existing timesheets." : "View your existing timesheets";
+                await registerDeviceToFCM()
             }).catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;

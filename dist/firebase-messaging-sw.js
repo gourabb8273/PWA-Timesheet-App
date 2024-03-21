@@ -24,14 +24,12 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('push', (event) => {
   const payload = event.data.json();
   console.log('Foreground message received:', payload);
-  // Customize the handling of the notification payload as needed
 });
 
 // Add an event listener to handle background push notifications
 self.addEventListener('backgroundpush', (event) => {
   const payload = event.data.json();
   console.log('Background message received:', payload);
-  // Customize the handling of the notification payload as needed
 });
 
 messaging.onBackgroundMessage(payload =>{
