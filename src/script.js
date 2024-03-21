@@ -10,10 +10,6 @@ import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc
 import { uploadBytes, getDownloadURL, ref, getStorage } from "firebase/storage";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { getFunctions, httpsCallable } from "firebase/functions";
-// import cors from 'cors';
-// cors({origin:true})
-// import * as functions from 'firebase-functions';  
-// import * as cors from 'cors';
 
 const firebaseConfig = {
     apiKey: "AIzaSyAXt5UCawojL8OlicQt-16f9Tu_Yof8RFg",
@@ -61,18 +57,53 @@ checkPermission();
 resisterSW();
 requestNotificationPermission();
 const addDeviceToFCM = httpsCallable(getFunctions(), 'addDeviceToFCM')
-
-
 const getFunction = getFunctions(app);
-const sendNotification = httpsCallable(getFunction, 'sendNotification');
-const sendNotificationToClient = async (token, title, body) => {
+
+// const sendNotification = httpsCallable(getFunction, 'sendNotification');
+
+// const sendNotificationToClient = async (token, title, body) => {
+//     try {
+//       const result = await sendNotification({ token, title, body });
+//       console.log('Notification sent successfully:', result);
+//     } catch (error) {
+//       console.error('Error sending notification:', error);
+//     }
+//   };
+
+async function sendPushNotification(deviceToken, title, body) {
+    
+    const notification = {
+        to: deviceToken,
+        data: {
+            title: title,
+            body: body
+        },
+        notification: {
+            title: title,
+            body: body
+        }
+    };
+
+    const requestOptions = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer AAAA6R4Olb0:APA91bFMi-Oc-hn-nIdAdftdsbE25-oID6z-KNLcOX4M-YlkuLfnlAm2ZIrKNQhzQMeK-XtPGgXyxCHexDYMfK2LcQvHI9-rcYUjlOHV_XRXKDGWvUPrcSelJpXP_8q07yFq0hHFXu2O'
+        },
+        body: JSON.stringify(notification)
+    };
+
     try {
-      const result = await sendNotification({ token, title, body });
-      console.log('Notification sent successfully:', result);
+        const response = await fetch('https://fcm.googleapis.com/fcm/send', requestOptions);
+        if (!response.ok) {
+            throw new Error('Failed to send push notification');
+        }
+        console.log('Push notification sent successfully');
     } catch (error) {
-      console.error('Error sending notification:', error);
+        console.error('Error sending push notification:', error);
     }
-  };
+}
+
 
 // Registering Firebase Cloud Messaging Client 
 async function registerDeviceToFCM(){
@@ -86,7 +117,7 @@ async function registerDeviceToFCM(){
                         if (currentToken) {
                             console.log('current token for client: ', currentToken);
                             await addTokenToFirestore(currentToken);
-                            await sendNotificationToClient(currentToken, 'Notification Title', 'Notification Body');
+                            // await sendNotificationToClient(currentToken, 'Notification Title', 'Notification Body');
                             // await addDeviceToFCM({token: currentToken})
                         } else {
                             console.log('No registration token available. Request permission to generate one.');
@@ -130,6 +161,8 @@ async function addTokenToFirestore(token) {
             });
             console.log('Token added to Firestore successfully.');
         }
+        await sendPushNotification(token, "Welcome to TMS", "Login Successfull! Welcome to TMS")
+        console.log('response')
     } catch (error) {
         console.error('Error adding/updating token in Firestore: ', error);
     }
@@ -563,8 +596,10 @@ async function loadTimeSheetData() {
                             const timesheetRef = doc(db, "timesheet", docId);
                             const updatedData = { approvalStatus: "Approved" };
                             updateDoc(timesheetRef, updatedData)
-                                .then(() => {
+                                .then(async() => {
                                     showNotification("Timesheet has been approved")
+                                    //Get the token for the user from token db using userId
+                                    // await sendPushNotification(token, "Timesheet Approved", "Your timesheet has been approved")
                                     console.log("Timesheet entry approved:", docId);
                                     timesheetContainer.innerHTML = "";
                                     loadTimeSheetData()
@@ -581,9 +616,11 @@ async function loadTimeSheetData() {
                             const timesheetRef = doc(db, "timesheet", docId);
                             const updatedData = { approvalStatus: "Rejected" };
                             updateDoc(timesheetRef, updatedData)
-                                .then(() => {
+                                .then(async() => {
                                     console.log("Timesheet entry Rejected:", docId);
                                     showNotification("Timesheet has been rejected")
+                                    //Get the token for the user from token db using userId
+                                    // await sendPushNotification(token, "Timesheet Rejected", "Your timesheet has been rejected")
                                     timesheetContainer.innerHTML = ""; 
                                     loadTimeSheetData()
                                 }).catch((error) => {
